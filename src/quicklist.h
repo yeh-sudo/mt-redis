@@ -31,6 +31,8 @@
 #ifndef __QUICKLIST_H__
 #define __QUICKLIST_H__
 
+#include <stddef.h>
+
 /* Node, quicklist, and Iterator are the only data structures used currently. */
 
 /* quicklistNode is a 32 byte struct describing a ziplist for a quicklist.

@@ -51,12 +51,14 @@ typedef struct clusterLink {
 #define CLUSTER_NODE_PFAIL 4   /* Failure? Need acknowledge */
 #define CLUSTER_NODE_FAIL 8    /* The node is believed to be malfunctioning */
 #define CLUSTER_NODE_MYSELF 16 /* This node is myself */
-#define CLUSTER_NODE_HANDSHAKE 32 /* We have still to exchange the first ping \
-                                   */
-#define CLUSTER_NODE_NOADDR 64    /* We don't know the address of this node */
-#define CLUSTER_NODE_MEET 128     /* Send a MEET message to this node */
-#define CLUSTER_NODE_MIGRATE_TO 256 /* Master elegible for replica migration. \
-                                     */
+#define CLUSTER_NODE_HANDSHAKE                                             \
+    32                         /* We have still to exchange the first ping \
+                                */
+#define CLUSTER_NODE_NOADDR 64 /* We don't know the address of this node */
+#define CLUSTER_NODE_MEET 128  /* Send a MEET message to this node */
+#define CLUSTER_NODE_MIGRATE_TO                   \
+    256 /* Master elegible for replica migration. \
+         */
 #define CLUSTER_NODE_NULL_NAME                                                 \
     "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000" \
     "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000" \

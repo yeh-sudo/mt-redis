@@ -27,15 +27,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cluster.h"
-#include "rand.h"
 #include "server.h"
 #include "sha1.h"
+#include "rand.h"
+#include "cluster.h"
 
-#include <ctype.h>
-#include <lauxlib.h>
 #include <lua.h>
+#include <lauxlib.h>
 #include <lualib.h>
+#include <ctype.h>
 #include <math.h>
 
 char *redisProtocolToLuaType_Int(lua_State *lua, char *reply);
@@ -55,9 +55,10 @@ void ldbLogRedisReply(char *reply);
 sds ldbCatStackValue(sds s, lua_State *lua, int idx);
 
 /* Debugger shared state is stored inside this global structure. */
-#define LDB_BREAKPOINTS_MAX 64  /* Max number of breakpoints. */
-#define LDB_MAX_LEN_DEFAULT 256 /* Default len limit for replies / var dumps. \
-                                 */
+#define LDB_BREAKPOINTS_MAX 64 /* Max number of breakpoints. */
+#define LDB_MAX_LEN_DEFAULT                           \
+    256 /* Default len limit for replies / var dumps. \
+         */
 struct ldbState {
     int fd;         /* Socket of the debugging client. */
     int active;     /* Are we debugging EVAL right now? */

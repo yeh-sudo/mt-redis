@@ -28,12 +28,12 @@
  */
 
 #include "server.h"
-#include "bio.h"
 #include "cluster.h"
+#include "slowlog.h"
+#include "bio.h"
 #include "latency.h"
 #include "q_master.h"
 #include "q_worker.h"
-#include "slowlog.h"
 
 #include <urcu.h>
 #include <urcu/rculfhash.h>

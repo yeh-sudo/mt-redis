@@ -21,12 +21,12 @@ A million repetitions of "a"
 
 #define SHA1HANDSOFF
 
-#include "sha1.h"
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
-#include "config.h"
+#include <stdio.h>
 #include "solarisfixes.h"
+#include "sha1.h"
+#include "config.h"
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 

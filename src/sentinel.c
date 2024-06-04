@@ -93,10 +93,11 @@ typedef struct sentinelAddr {
 #define SENTINEL_FAILOVER_STATE_WAIT_START 1   /* Wait for failover_start_time*/
 #define SENTINEL_FAILOVER_STATE_SELECT_SLAVE 2 /* Select slave to promote */
 #define SENTINEL_FAILOVER_STATE_SEND_SLAVEOF_NOONE 3 /* Slave -> Master */
-#define SENTINEL_FAILOVER_STATE_WAIT_PROMOTION 4 /* Wait slave to change role \
-                                                  */
-#define SENTINEL_FAILOVER_STATE_RECONF_SLAVES 5  /* SLAVEOF newmaster */
-#define SENTINEL_FAILOVER_STATE_UPDATE_CONFIG 6  /* Monitor promoted slave. */
+#define SENTINEL_FAILOVER_STATE_WAIT_PROMOTION                               \
+    4                                           /* Wait slave to change role \
+                                                 */
+#define SENTINEL_FAILOVER_STATE_RECONF_SLAVES 5 /* SLAVEOF newmaster */
+#define SENTINEL_FAILOVER_STATE_UPDATE_CONFIG 6 /* Monitor promoted slave. */
 
 #define SENTINEL_MASTER_LINK_STATUS_UP 0
 #define SENTINEL_MASTER_LINK_STATUS_DOWN 1

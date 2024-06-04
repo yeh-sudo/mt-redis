@@ -39,8 +39,8 @@
  */
 
 
-#include "slowlog.h"
 #include "server.h"
+#include "slowlog.h"
 
 /* Create a new slowlog entry.
  * Incrementing the ref count of all the objects retained is up to

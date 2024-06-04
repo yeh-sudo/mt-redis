@@ -27,18 +27,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "server.h"
 #include "bio.h"
 #include "rio.h"
-#include "server.h"
 
-#include <fcntl.h>
 #include <signal.h>
-#include <sys/param.h>
-#include <sys/resource.h>
+#include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <sys/wait.h>
+#include <sys/param.h>
 
 void aofUpdateCurrentSize(void);
 void aofClosePipes(void);

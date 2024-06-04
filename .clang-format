@@ -13,3 +13,4 @@ UseTab: Never
 IndentWidth: 4
 BreakBeforeBraces: Linux
 AccessModifierOffset: -4
+SortIncludes: Never

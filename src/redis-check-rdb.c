@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rdb.h"
 #include "server.h"
+#include "rdb.h"
 
 #include <stdarg.h>
 

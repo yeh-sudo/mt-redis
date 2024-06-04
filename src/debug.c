@@ -27,20 +27,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "crc64.h"
 #include "server.h"
 #include "sha1.h" /* SHA1 is used for DEBUG DIGEST */
+#include "crc64.h"
 
 #include <arpa/inet.h>
 #include <signal.h>
 
 #ifdef HAVE_BACKTRACE
-#include <dlfcn.h>
 #include <execinfo.h>
-#include <fcntl.h>
 #include <ucontext.h>
-#include <unistd.h>
+#include <fcntl.h>
 #include "bio.h"
+#include <unistd.h>
+#include <dlfcn.h>
 #endif /* HAVE_BACKTRACE */
 
 #ifdef __CYGWIN__

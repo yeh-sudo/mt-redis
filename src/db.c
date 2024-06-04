@@ -27,11 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cluster.h"
 #include "server.h"
+#include "cluster.h"
 
-#include <ctype.h>
 #include <signal.h>
+#include <ctype.h>
 
 void slotToKeyAdd(robj *key);
 void slotToKeyDel(robj *key);

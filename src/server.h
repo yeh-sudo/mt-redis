@@ -30,45 +30,45 @@
 #ifndef __REDIS_H
 #define __REDIS_H
 
-#include "config.h"
 #include "fmacros.h"
+#include "config.h"
 #include "solarisfixes.h"
 
-#include <errno.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <lua.h>
-#include <netinet/in.h>
-#include <pthread.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syslog.h>
 #include <time.h>
+#include <limits.h>
 #include <unistd.h>
+#include <errno.h>
+#include <inttypes.h>
+#include <pthread.h>
+#include <syslog.h>
+#include <netinet/in.h>
+#include <lua.h>
+#include <signal.h>
 #include <urcu/rculfqueue.h>
 #include <urcu/wfcqueue.h>
 
 typedef long long mstime_t; /* millisecond time type. */
 
-#include "adlist.h"  /* Linked lists */
-#include "ae.h"      /* Event driven programming library */
-#include "anet.h"    /* Networking the easy way */
-#include "dict.h"    /* Hash tables */
-#include "intset.h"  /* Compact integer set structure */
-#include "latency.h" /* Latency monitor API */
 #include "q_core.h"
-#include "q_dict.h"
+#include "ae.h"        /* Event driven programming library */
+#include "sds.h"       /* Dynamic safe strings */
+#include "dict.h"      /* Hash tables */
+#include "adlist.h"    /* Linked lists */
+#include "zmalloc.h"   /* total memory usage aware version of malloc/free */
+#include "anet.h"      /* Networking the easy way */
+#include "ziplist.h"   /* Compact list data structure */
+#include "intset.h"    /* Compact integer set structure */
+#include "version.h"   /* Version macro */
+#include "util.h"      /* Misc functions useful in many places */
+#include "latency.h"   /* Latency monitor API */
+#include "sparkline.h" /* ASCII graphs API */
+#include "quicklist.h"
 #include "q_eventloop.h"
 #include "q_thread.h"
-#include "quicklist.h"
-#include "sds.h"       /* Dynamic safe strings */
-#include "sparkline.h" /* ASCII graphs API */
-#include "util.h"      /* Misc functions useful in many places */
-#include "version.h"   /* Version macro */
-#include "ziplist.h"   /* Compact list data structure */
-#include "zmalloc.h"   /* total memory usage aware version of malloc/free */
+#include "q_dict.h"
 
 /* Following includes allow test functions to be called from Redis main() */
 #include "crc64.h"
@@ -156,8 +156,9 @@ typedef long long mstime_t; /* millisecond time type. */
 #define STATS_METRIC_COUNT 3
 
 /* Protocol and I/O related defines */
-#define PROTO_MAX_QUERYBUF_LEN (1024 * 1024 * 1024) /* 1GB max query buffer. \
-                                                     */
+#define PROTO_MAX_QUERYBUF_LEN                                       \
+    (1024 * 1024 * 1024)                    /* 1GB max query buffer. \
+                                             */
 #define PROTO_IOBUF_LEN (1024 * 16)         /* Generic I/O buffer size */
 #define PROTO_REPLY_CHUNK_BYTES (16 * 1024) /* 16k output buffer */
 #define PROTO_INLINE_MAX_SIZE (1024 * 64)   /* Max size of inline reads */
@@ -334,11 +335,13 @@ typedef long long mstime_t; /* millisecond time type. */
  * In SEND_BULK and ONLINE state the slave receives new updates
  * in its output queue. In the WAIT_BGSAVE states instead the server is waiting
  * to start the next background saving in order to send updates to it. */
-#define SLAVE_STATE_WAIT_BGSAVE_START 6 /* We need to produce a new RDB file. \
-                                         */
-#define SLAVE_STATE_WAIT_BGSAVE_END 7 /* Waiting RDB file creation to finish. \
-                                       */
-#define SLAVE_STATE_SEND_BULK 8       /* Sending RDB file to slave. */
+#define SLAVE_STATE_WAIT_BGSAVE_START       \
+    6 /* We need to produce a new RDB file. \
+       */
+#define SLAVE_STATE_WAIT_BGSAVE_END                                     \
+    7                           /* Waiting RDB file creation to finish. \
+                                 */
+#define SLAVE_STATE_SEND_BULK 8 /* Sending RDB file to slave. */
 #define SLAVE_STATE_ONLINE 9 /* RDB file transmitted, sending just updates. */
 
 /* Slave capabilities. */

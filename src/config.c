@@ -28,8 +28,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cluster.h"
 #include "server.h"
+#include "cluster.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>

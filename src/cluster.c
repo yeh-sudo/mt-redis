@@ -28,18 +28,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "server.h"
 #include "cluster.h"
 #include "endianconv.h"
-#include "server.h"
 
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <math.h>
-#include <sys/file.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <math.h>
 
 /* A global reference to myself is handy to make code more clear.
  * Myself always points to server.cluster->myself, that is, the clusterNode

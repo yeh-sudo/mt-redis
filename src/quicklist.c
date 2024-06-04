@@ -498,7 +498,7 @@ REDIS_STATIC int _quicklistNodeAllowMerge(const quicklistNode *a,
  *
  * Returns 0 if used existing head.
  * Returns 1 if new head created. */
-int quicklistPushHead(quicklist *quicklist, void *value, size_t sz)
+int quicklistPushHead(quicklist *quicklist, void *value, const size_t sz)
 {
     quicklistNode *orig_head = quicklist->head;
     if (likely(
