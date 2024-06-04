@@ -12,16 +12,18 @@ typedef int (*darray_compare_t)(const void *, const void *);
 typedef int (*darray_each_t)(void *, void *);
 
 typedef struct darray {
-    unsigned long long   nelem;  /* # element */
-    void                 *elem;  /* element */
-    size_t               size;   /* element size */
-    unsigned long long   nalloc; /* # allocated element */
+    unsigned long long nelem;  /* # element */
+    void *elem;                /* element */
+    size_t size;               /* element size */
+    unsigned long long nalloc; /* # allocated element */
 } darray;
 
-#define null_darray { 0, NULL, 0, 0 }
+#define null_darray   \
+    {                 \
+        0, NULL, 0, 0 \
+    }
 
-static inline void
-darray_null(darray *a)
+static inline void darray_null(darray *a)
 {
     a->nelem = 0;
     a->elem = NULL;
@@ -29,8 +31,10 @@ darray_null(darray *a)
     a->nalloc = 0;
 }
 
-static inline void
-darray_set(darray *a, void *elem, size_t size, unsigned long long nalloc)
+static inline void darray_set(darray *a,
+                              void *elem,
+                              size_t size,
+                              unsigned long long nalloc)
 {
     a->nelem = 0;
     a->elem = elem;
@@ -38,8 +42,7 @@ darray_set(darray *a, void *elem, size_t size, unsigned long long nalloc)
     a->nalloc = nalloc;
 }
 
-static inline unsigned long long
-darray_n(const darray *a)
+static inline unsigned long long darray_n(const darray *a)
 {
     return a->nelem;
 }
@@ -58,4 +61,4 @@ void darray_swap(darray *a, darray *b);
 void darray_sort(darray *a, darray_compare_t compare);
 int darray_each(darray *a, darray_each_t func, void *data);
 
-#endif //Q_REDIS_DARRAY_H
+#endif  // Q_REDIS_DARRAY_H

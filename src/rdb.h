@@ -62,26 +62,26 @@
 /* When a length of a string object stored on disk has the first two bits
  * set, the remaining two bits specify a special encoding for the object
  * accordingly to the following defines: */
-#define RDB_ENC_INT8 0        /* 8 bit signed integer */
-#define RDB_ENC_INT16 1       /* 16 bit signed integer */
-#define RDB_ENC_INT32 2       /* 32 bit signed integer */
-#define RDB_ENC_LZF 3         /* string compressed with FASTLZ */
+#define RDB_ENC_INT8 0  /* 8 bit signed integer */
+#define RDB_ENC_INT16 1 /* 16 bit signed integer */
+#define RDB_ENC_INT32 2 /* 32 bit signed integer */
+#define RDB_ENC_LZF 3   /* string compressed with FASTLZ */
 
 /* Dup object types to RDB object types. Only reason is readability (are we
  * dealing with RDB types or with in-memory object types?). */
 #define RDB_TYPE_STRING 0
-#define RDB_TYPE_LIST   1
-#define RDB_TYPE_SET    2
-#define RDB_TYPE_ZSET   3
-#define RDB_TYPE_HASH   4
+#define RDB_TYPE_LIST 1
+#define RDB_TYPE_SET 2
+#define RDB_TYPE_ZSET 3
+#define RDB_TYPE_HASH 4
 /* NOTE: WHEN ADDING NEW RDB TYPE, UPDATE rdbIsObjectType() BELOW */
 
 /* Object types for encoded objects. */
-#define RDB_TYPE_HASH_ZIPMAP    9
-#define RDB_TYPE_LIST_ZIPLIST  10
-#define RDB_TYPE_SET_INTSET    11
-#define RDB_TYPE_ZSET_ZIPLIST  12
-#define RDB_TYPE_HASH_ZIPLIST  13
+#define RDB_TYPE_HASH_ZIPMAP 9
+#define RDB_TYPE_LIST_ZIPLIST 10
+#define RDB_TYPE_SET_INTSET 11
+#define RDB_TYPE_ZSET_ZIPLIST 12
+#define RDB_TYPE_HASH_ZIPLIST 13
 #define RDB_TYPE_LIST_QUICKLIST 14
 /* NOTE: WHEN ADDING NEW RDB TYPE, UPDATE rdbIsObjectType() BELOW */
 
@@ -89,12 +89,12 @@
 #define rdbIsObjectType(t) ((t >= 0 && t <= 4) || (t >= 9 && t <= 14))
 
 /* Special RDB opcodes (saved/loaded with rdbSaveType/rdbLoadType). */
-#define RDB_OPCODE_AUX        250
-#define RDB_OPCODE_RESIZEDB   251
+#define RDB_OPCODE_AUX 250
+#define RDB_OPCODE_RESIZEDB 251
 #define RDB_OPCODE_EXPIRETIME_MS 252
 #define RDB_OPCODE_EXPIRETIME 253
-#define RDB_OPCODE_SELECTDB   254
-#define RDB_OPCODE_EOF        255
+#define RDB_OPCODE_SELECTDB 254
+#define RDB_OPCODE_EOF 255
 
 int rdbSaveType(rio *rdb, unsigned char type);
 int rdbLoadType(rio *rdb);
@@ -113,7 +113,11 @@ ssize_t rdbSaveObject(rio *rdb, robj *o);
 size_t rdbSavedObjectLen(robj *o);
 robj *rdbLoadObject(int type, rio *rdb);
 void backgroundSaveDoneHandler(int exitcode, int bysignal);
-int rdbSaveKeyValuePair(rio *rdb, robj *key, robj *val, long long expiretime, long long now);
+int rdbSaveKeyValuePair(rio *rdb,
+                        robj *key,
+                        robj *val,
+                        long long expiretime,
+                        long long now);
 robj *rdbLoadStringObject(rio *rdb);
 
 #endif

@@ -20,4 +20,4 @@ int q_thread_init(q_thread *thread);
 void q_thread_deinit(q_thread *thread);
 int q_thread_start(q_thread *thread);
 
-#endif //Q_REDIS_Q_THREAD_H
+#endif  // Q_REDIS_Q_THREAD_H

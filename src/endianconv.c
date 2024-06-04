@@ -46,7 +46,8 @@
 
 /* Toggle the 16 bit unsigned integer pointed by *p from little endian to
  * big endian */
-void memrev16(void *p) {
+void memrev16(void *p)
+{
     unsigned char *x = p, t;
 
     t = x[0];
@@ -56,7 +57,8 @@ void memrev16(void *p) {
 
 /* Toggle the 32 bit unsigned integer pointed by *p from little endian to
  * big endian */
-void memrev32(void *p) {
+void memrev32(void *p)
+{
     unsigned char *x = p, t;
 
     t = x[0];
@@ -69,7 +71,8 @@ void memrev32(void *p) {
 
 /* Toggle the 64 bit unsigned integer pointed by *p from little endian to
  * big endian */
-void memrev64(void *p) {
+void memrev64(void *p)
+{
     unsigned char *x = p, t;
 
     t = x[0];
@@ -86,17 +89,20 @@ void memrev64(void *p) {
     x[4] = t;
 }
 
-uint16_t intrev16(uint16_t v) {
+uint16_t intrev16(uint16_t v)
+{
     memrev16(&v);
     return v;
 }
 
-uint32_t intrev32(uint32_t v) {
+uint32_t intrev32(uint32_t v)
+{
     memrev32(&v);
     return v;
 }
 
-uint64_t intrev64(uint64_t v) {
+uint64_t intrev64(uint64_t v)
+{
     memrev64(&v);
     return v;
 }
@@ -104,22 +110,23 @@ uint64_t intrev64(uint64_t v) {
 #ifdef REDIS_TEST
 #include <stdio.h>
 
-#define UNUSED(x) (void)(x)
-int endianconvTest(int argc, char *argv[]) {
+#define UNUSED(x) (void) (x)
+int endianconvTest(int argc, char *argv[])
+{
     char buf[32];
 
     UNUSED(argc);
     UNUSED(argv);
 
-    sprintf(buf,"ciaoroma");
+    sprintf(buf, "ciaoroma");
     memrev16(buf);
     printf("%s\n", buf);
 
-    sprintf(buf,"ciaoroma");
+    sprintf(buf, "ciaoroma");
     memrev32(buf);
     printf("%s\n", buf);
 
-    sprintf(buf,"ciaoroma");
+    sprintf(buf, "ciaoroma");
     memrev64(buf);
     printf("%s\n", buf);
 

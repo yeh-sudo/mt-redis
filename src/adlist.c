@@ -29,8 +29,8 @@
  */
 
 
-#include <stdlib.h>
 #include "adlist.h"
+#include <stdlib.h>
 #include "zmalloc.h"
 
 /* Create a new list. The created list can be freed with
@@ -62,9 +62,10 @@ void listRelease(list *list)
 
     current = list->head;
     len = list->len;
-    while(len--) {
+    while (len--) {
         next = current->next;
-        if (list->free) list->free(current->value);
+        if (list->free)
+            list->free(current->value);
         zfree(current);
         current = next;
     }
@@ -123,7 +124,8 @@ list *listAddNodeTail(list *list, void *value)
     return list;
 }
 
-list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
+list *listInsertNode(list *list, listNode *old_node, void *value, int after)
+{
     listNode *node;
 
     if ((node = zmalloc(sizeof(*node))) == NULL)
@@ -166,7 +168,8 @@ void listDelNode(list *list, listNode *node)
         node->next->prev = node->prev;
     else
         list->tail = node->prev;
-    if (list->free) list->free(node->value);
+    if (list->free)
+        list->free(node->value);
     zfree(node);
     list->len--;
 }
@@ -179,7 +182,8 @@ listIter *listGetIterator(list *list, int direction)
 {
     listIter *iter;
 
-    if ((iter = zmalloc(sizeof(*iter))) == NULL) return NULL;
+    if ((iter = zmalloc(sizeof(*iter))) == NULL)
+        return NULL;
     if (direction == AL_START_HEAD)
         iter->next = list->head;
     else
@@ -189,17 +193,20 @@ listIter *listGetIterator(list *list, int direction)
 }
 
 /* Release the iterator memory */
-void listReleaseIterator(listIter *iter) {
+void listReleaseIterator(listIter *iter)
+{
     zfree(iter);
 }
 
 /* Create an iterator in the list private iterator structure */
-void listRewind(list *list, listIter *li) {
+void listRewind(list *list, listIter *li)
+{
     li->next = list->head;
     li->direction = AL_START_HEAD;
 }
 
-void listRewindTail(list *list, listIter *li) {
+void listRewindTail(list *list, listIter *li)
+{
     li->next = list->tail;
     li->direction = AL_START_TAIL;
 }
@@ -251,7 +258,7 @@ list *listDup(list *orig)
     copy->free = orig->free;
     copy->match = orig->match;
     listRewind(orig, &iter);
-    while((node = listNext(&iter)) != NULL) {
+    while ((node = listNext(&iter)) != NULL) {
         void *value;
 
         if (copy->dup) {
@@ -285,7 +292,7 @@ listNode *listSearchKey(list *list, void *key)
     listNode *node;
 
     listRewind(list, &iter);
-    while((node = listNext(&iter)) != NULL) {
+    while ((node = listNext(&iter)) != NULL) {
         if (list->match) {
             if (list->match(node->value, key)) {
                 return node;
@@ -304,25 +311,30 @@ listNode *listSearchKey(list *list, void *key)
  * and so on. Negative integers are used in order to count
  * from the tail, -1 is the last element, -2 the penultimate
  * and so on. If the index is out of range NULL is returned. */
-listNode *listIndex(list *list, long index) {
+listNode *listIndex(list *list, long index)
+{
     listNode *n;
 
     if (index < 0) {
-        index = (-index)-1;
+        index = (-index) - 1;
         n = list->tail;
-        while(index-- && n) n = n->prev;
+        while (index-- && n)
+            n = n->prev;
     } else {
         n = list->head;
-        while(index-- && n) n = n->next;
+        while (index-- && n)
+            n = n->next;
     }
     return n;
 }
 
 /* Rotate the list removing the tail node and inserting it to the head. */
-void listRotate(list *list) {
+void listRotate(list *list)
+{
     listNode *tail = list->tail;
 
-    if (listLength(list) <= 1) return;
+    if (listLength(list) <= 1)
+        return;
 
     /* Detach current tail */
     list->tail = tail->prev;
@@ -334,7 +346,8 @@ void listRotate(list *list) {
     list->head = tail;
 }
 
-void *listPop(list *list) {
+void *listPop(list *list)
+{
     listNode *node;
     void *value;
 
@@ -346,12 +359,14 @@ void *listPop(list *list) {
     value = listNodeValue(node);
     listDelNode(list, node);
 
-    if (list->free) return NULL;
+    if (list->free)
+        return NULL;
 
     return value;
 }
 
-list *listPush(list *list, void *value) {
+list *listPush(list *list, void *value)
+{
     listAddNodeTail(list, value);
     return list;
 }

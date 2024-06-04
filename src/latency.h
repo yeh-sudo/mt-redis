@@ -45,7 +45,7 @@ struct latencySample {
 
 /* The latency time series for a given event. */
 struct latencyTimeSeries {
-    int idx; /* Index of the next sample to store. */
+    int idx;      /* Index of the next sample to store. */
     uint32_t max; /* Max latency observed for this event. */
     struct latencySample samples[LATENCY_TS_LEN]; /* Latest history. */
 };
@@ -68,26 +68,27 @@ int THPIsEnabled(void);
 /* Latency monitoring macros. */
 
 /* Start monitoring an event. We just set the current time. */
-#define latencyStartMonitor(var) if (server.latency_monitor_threshold) { \
-    var = mstime(); \
-} else { \
-    var = 0; \
-}
+#define latencyStartMonitor(var)            \
+    if (server.latency_monitor_threshold) { \
+        var = mstime();                     \
+    } else {                                \
+        var = 0;                            \
+    }
 
 /* End monitoring an event, compute the difference with the current time
  * to check the amount of time elapsed. */
-#define latencyEndMonitor(var) if (server.latency_monitor_threshold) { \
-    var = mstime() - var; \
-}
+#define latencyEndMonitor(var)              \
+    if (server.latency_monitor_threshold) { \
+        var = mstime() - var;               \
+    }
 
 /* Add the sample only if the elapsed time is >= to the configured threshold. */
-#define latencyAddSampleIfNeeded(event,var) \
-    if (server.latency_monitor_threshold && \
+#define latencyAddSampleIfNeeded(event, var)       \
+    if (server.latency_monitor_threshold &&        \
         (var) >= server.latency_monitor_threshold) \
-          latencyAddSample((event),(var));
+        latencyAddSample((event), (var));
 
 /* Remove time from a nested event. */
-#define latencyRemoveNestedEvent(event_var,nested_var) \
-    event_var += nested_var;
+#define latencyRemoveNestedEvent(event_var, nested_var) event_var += nested_var;
 
 #endif /* __LATENCY_H */

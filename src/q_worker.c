@@ -3,11 +3,12 @@
 //
 #include <urcu.h>
 
-#include "q_worker.h"
 #include "q_eventloop.h"
+#include "q_worker.h"
 #include "server.h"
 
-#define worker_run_with_period(_ms_) if ((_ms_ <= 1000/qel->hz) || !(cron_loops%((_ms_)/(1000/qel->hz))))
+#define worker_run_with_period(_ms_) \
+    if ((_ms_ <= 1000 / qel->hz) || !(cron_loops % ((_ms_) / (1000 / qel->hz))))
 
 /* Which thread we assigned a connection to most recently. */
 static int last_worker_thread = -1;
@@ -16,8 +17,8 @@ struct darray workers;
 
 static void *worker_thread_run(void *args);
 
-struct connswapunit *
-csul_pop(q_worker *worker) {
+struct connswapunit *csul_pop(q_worker *worker)
+{
     struct connswapunit *su = NULL;
     struct cds_wfcq_node *qnode;
 
@@ -29,20 +30,21 @@ csul_pop(q_worker *worker) {
     return su;
 }
 
-void csul_push(q_worker *worker, struct connswapunit *su) {
+void csul_push(q_worker *worker, struct connswapunit *su)
+{
     if (su == NULL || worker == NULL) {
         return;
     }
-    
+
     cds_wfcq_enqueue(&worker->q_head, &worker->q_tail, &su->q_node);
     return;
 }
 
-struct connswapunit* csul_server_pop(q_worker *worker) 
+struct connswapunit *csul_server_pop(q_worker *worker)
 {
     struct connswapunit *su = NULL;
     struct cds_wfcq_node *qnode = NULL;
-    //pop from the replication queue (head, tail)
+    // pop from the replication queue (head, tail)
     qnode = __cds_wfcq_dequeue_blocking(&worker->r_head, &worker->r_tail);
 
     if (!qnode) {
@@ -53,26 +55,28 @@ struct connswapunit* csul_server_pop(q_worker *worker)
     return su;
 }
 
-void csul_server_push(q_worker *worker, struct connswapunit *su) 
+void csul_server_push(q_worker *worker, struct connswapunit *su)
 {
     if (su == NULL || worker == NULL) {
         return;
     }
 
-    //Qredis: forget to intialize q_node, will caues panic for pop
-    // put the initialization code to csui_new() by cds_wfcq_node_init(&su->q_node);
+    // Qredis: forget to intialize q_node, will caues panic for pop
+    //  put the initialization code to csui_new() by
+    //  cds_wfcq_node_init(&su->q_node);
     cds_wfcq_enqueue(&worker->r_head, &worker->r_tail, &su->q_node);
     return;
 }
 
-void q_worker_init_stats(q_worker_stats *stats) {
+void q_worker_init_stats(q_worker_stats *stats)
+{
     stats->bib = 0;
     stats->connected_clients = 0;
     stats->lol = 0;
 }
 
-int
-q_worker_init(q_worker *worker) {
+int q_worker_init(q_worker *worker)
+{
     int status;
 
     if (worker == NULL) {
@@ -91,6 +95,7 @@ q_worker_init(q_worker *worker) {
     worker->qel.thread.fun_run = worker_thread_run;
     worker->qel.thread.data = worker;
 
+    // SOCK_STREAM: TCP protocol
     status = socketpair(AF_LOCAL, SOCK_STREAM, 0, worker->socketpairs);
     if (status < 0) {
         serverLog(LL_WARNING, "create socketpairs failed: %s", strerror(errno));
@@ -122,8 +127,11 @@ q_worker_init(q_worker *worker) {
 
 
 // worker threads to master/server thread communication handler function
-static void
-worker_thread_event_process(aeEventLoop *el, int fd, void *privdata, int mask) {
+static void worker_thread_event_process(aeEventLoop *el,
+                                        int fd,
+                                        void *privdata,
+                                        int mask)
+{
     int status;
     int sd;
     int res = C_OK;
@@ -131,7 +139,7 @@ worker_thread_event_process(aeEventLoop *el, int fd, void *privdata, int mask) {
     char buf[1];
     struct connswapunit *csu;
     client *c;
-    q_eventloop *qel=NULL;
+    q_eventloop *qel = NULL;
 
     UNUSED(mask);
 
@@ -140,126 +148,131 @@ worker_thread_event_process(aeEventLoop *el, int fd, void *privdata, int mask) {
 
     if (read(fd, buf, 1) != 1) {
         serverLog(LL_WARNING, "Can't read for worker(id:%d) socketpairs[1](%d)",
-                 worker->qel.thread.id, fd);
+                  worker->qel.thread.id, fd);
         buf[0] = 'c';
     }
 
     switch (buf[0]) {
-         case 'c':
-             csu = csul_pop(worker);
-             if (csu == NULL) {
-                 return;
-             }
-             sd = csu->num;
-             zfree(csu);
-             status = anetNonBlock(NULL, sd);
-             if (status < 0) {
-                 serverLog(LL_WARNING, "set nonblock on c %d failed: %s",
-                           sd, strerror(errno));
-                 close(sd);
-                 return;
-             }
- 
-             // we only deal with AF_INET and AF_INET6 connection
-             //if (qlisten->info.family == AF_INET || qlisten->info.family == AF_INET6) {
-                 status = anetEnableTcpNoDelay(NULL, sd);
-                 if (status < 0) {
-                     serverLog(LL_WARNING, "set tcpnodelay on c %d failed, ignored: %s",
-                              sd, strerror(errno));
-                 }
-             //}
- 
-             c = createClient(&worker->qel, sd);
-             if (c == NULL) {
-                 serverLog(LL_WARNING, "Create client failed");
-                 close(sd);
-                 return;
-             }
-             c->curidx = worker->id;
-             //  sd should already be added to worker's eventloop inside createClient function.
-             /*
-              * status = aeCreateFileEvent(worker->qel.el, sd, AE_READABLE,
-              *                            readQueryFromClient, c);
-              * if (status == AE_ERR) {
-              *     serverLog(LL_WARNING, "Unrecoverable error creating worker ipfd file event.");
-              *     return;
-              * }
-              */
- 
-             break;
-        case 'b':
-            /* receive back the client from server thread. */
-           csu = csul_server_pop(worker);
-           if (csu == NULL) {
-               return;
-           }
-           c = rcu_dereference(csu->data);
-           //ToDo: make use csui_free instead;
-           zfree(csu);
-           //csui_free(csu);
-           //call_rcu(&csu->rcu_head, q_free_connswapunit);
-           qel = &worker->qel;
-           c->qel = &worker->qel;
-           c->curidx = worker->id;
-           
-           //the client may has pending reply from replication slaveofcommand, 
-           //so relink to worker's event loop
-           c->flags &= ~CLIENT_JUMP;
-           resetClient(c);
+    case 'c':
+        csu = csul_pop(worker);
+        if (csu == NULL) {
+            return;
+        }
+        sd = csu->num;
+        zfree(csu);
+        status = anetNonBlock(NULL, sd);
+        if (status < 0) {
+            serverLog(LL_WARNING, "set nonblock on c %d failed: %s", sd,
+                      strerror(errno));
+            close(sd);
+            return;
+        }
 
-           listAddNodeTail(qel->clients, c);
-           c->qel = qel;
+        // we only deal with AF_INET and AF_INET6 connection
+        // if (qlisten->info.family == AF_INET || qlisten->info.family ==
+        // AF_INET6) {
+        status = anetEnableTcpNoDelay(NULL, sd);
+        if (status < 0) {
+            serverLog(LL_WARNING, "set tcpnodelay on c %d failed, ignored: %s",
+                      sd, strerror(errno));
+        }
+        //}
 
-           if (c->flags & CLIENT_CLOSE_ASAP) {
-               //Leave the serverCron to free the client. We can do nothing here and just return
-               //listAddNodeTail(qel->clients_to_close, c);
-               //freeClient(c);
-               return;
-           }
+        c = createClient(&worker->qel, sd);
+        if (c == NULL) {
+            serverLog(LL_WARNING, "Create client failed");
+            close(sd);
+            return;
+        }
+        c->curidx = worker->id;
+        //  sd should already be added to worker's eventloop inside createClient
+        //  function.
+        /*
+         * status = aeCreateFileEvent(worker->qel.el, sd, AE_READABLE,
+         *                            readQueryFromClient, c);
+         * if (status == AE_ERR) {
+         *     serverLog(LL_WARNING, "Unrecoverable error creating worker ipfd
+         * file event."); return;
+         * }
+         */
 
-           //ToDo: the CLIENT_PENDING_WRITE flag has been cleared by server thread.
-           if (c->flags & CLIENT_PENDING_WRITE) {
-               listAddNodeTail(qel->clients_pending_write, c);
-               if (aeCreateFileEvent(qel->el, c->fd, AE_WRITABLE,
-                           sendReplyToClient, c) == AE_ERR) {
-                   freeClient(c);
-                   return;
-               }
-           } else if(clientHasPendingReplies(c)){
-               if(aeCreateFileEvent(qel->el, c->fd, AE_WRITABLE, 
-                           sendReplyToClient, c) == AE_ERR) {
-                   freeClient(c);
-                   return;
-               }
-           }
+        break;
+    case 'b':
+        /* receive back the client from server thread. */
+        csu = csul_server_pop(worker);
+        if (csu == NULL) {
+            return;
+        }
+        c = rcu_dereference(csu->data);
+        // ToDo: make use csui_free instead;
+        zfree(csu);
+        // csui_free(csu);
+        // call_rcu(&csu->rcu_head, q_free_connswapunit);
+        qel = &worker->qel;
+        c->qel = &worker->qel;
+        c->curidx = worker->id;
 
-           if (sdslen(c->querybuf) > 0 ) {
-               // if we still have command to be processed inside querybuf, process it first.
-               res = worker_processInputBuffer(c);
-           } 
-           if (res == C_OK) {
-               if (aeCreateFileEvent(qel->el, c->fd, AE_READABLE, 
-                           worker_readQueryFromClient,c) == AE_ERR) {
+        // the client may has pending reply from replication slaveofcommand,
+        // so relink to worker's event loop
+        c->flags &= ~CLIENT_JUMP;
+        resetClient(c);
 
-                   freeClient(c);
-                   serverPanic("adding worker_readQueryFromClient to event loop panic");
-                   return;
-                }
-           }
+        listAddNodeTail(qel->clients, c);
+        c->qel = qel;
 
-           break;
-        default:
-           serverLog(LL_WARNING, "read error char '%c' for worker(id:%d) socketpairs[1](%d)",
-                   buf[0], worker->qel.thread.id, worker->socketpairs[1]);
-           break;
+        if (c->flags & CLIENT_CLOSE_ASAP) {
+            // Leave the serverCron to free the client. We can do nothing here
+            // and just return listAddNodeTail(qel->clients_to_close, c);
+            // freeClient(c);
+            return;
+        }
+
+        // ToDo: the CLIENT_PENDING_WRITE flag has been cleared by server
+        // thread.
+        if (c->flags & CLIENT_PENDING_WRITE) {
+            listAddNodeTail(qel->clients_pending_write, c);
+            if (aeCreateFileEvent(qel->el, c->fd, AE_WRITABLE,
+                                  sendReplyToClient, c) == AE_ERR) {
+                freeClient(c);
+                return;
+            }
+        } else if (clientHasPendingReplies(c)) {
+            if (aeCreateFileEvent(qel->el, c->fd, AE_WRITABLE,
+                                  sendReplyToClient, c) == AE_ERR) {
+                freeClient(c);
+                return;
+            }
+        }
+
+        if (sdslen(c->querybuf) > 0) {
+            // if we still have command to be processed inside querybuf, process
+            // it first.
+            res = worker_processInputBuffer(c);
+        }
+        if (res == C_OK) {
+            if (aeCreateFileEvent(qel->el, c->fd, AE_READABLE,
+                                  worker_readQueryFromClient, c) == AE_ERR) {
+                freeClient(c);
+                serverPanic(
+                    "adding worker_readQueryFromClient to event loop panic");
+                return;
+            }
+        }
+
+        break;
+    default:
+        serverLog(LL_WARNING,
+                  "read error char '%c' for worker(id:%d) socketpairs[1](%d)",
+                  buf[0], worker->qel.thread.id, worker->socketpairs[1]);
+        break;
     }
 }
 
 /* This function gets called every time Redis is entering the
  * main loop of the event driven library, that is, before to sleep
  * for ready file descriptors. */
-void
-worker_before_sleep(struct aeEventLoop *eventLoop, void *private_data) {
+void worker_before_sleep(struct aeEventLoop *eventLoop, void *private_data)
+{
     q_worker *worker = private_data;
 
     UNUSED(eventLoop);
@@ -269,10 +282,11 @@ worker_before_sleep(struct aeEventLoop *eventLoop, void *private_data) {
 
     /* Handle writes with pending output buffers. */
     handleClientsWithPendingWrites(&worker->qel);
-    //activeExpireCycle(worker, ACTIVE_EXPIRE_CYCLE_FAST);
+    // activeExpireCycle(worker, ACTIVE_EXPIRE_CYCLE_FAST);
 }
 
-int worker_cron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
+int worker_cron(struct aeEventLoop *eventLoop, long long id, void *clientData)
+{
     static long long cron_loops = 0;
     q_worker *worker = (q_worker *) clientData;
     q_eventloop *qel = &worker->qel;
@@ -285,25 +299,27 @@ int worker_cron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
     handleClientsWithPendingWrites(&worker->qel);
 
-    worker_run_with_period(100) {
-        trackInstantaneousMetric(STATS_METRIC_COMMAND, qel, 
-                qel->stats.stat_numcommands);
-        trackInstantaneousMetric(STATS_METRIC_NET_INPUT, qel, 
-                qel->stats.stat_net_input_bytes);
+    worker_run_with_period(100)
+    {
+        trackInstantaneousMetric(STATS_METRIC_COMMAND, qel,
+                                 qel->stats.stat_numcommands);
+        trackInstantaneousMetric(STATS_METRIC_NET_INPUT, qel,
+                                 qel->stats.stat_net_input_bytes);
         trackInstantaneousMetric(STATS_METRIC_NET_OUTPUT, qel,
-                qel->stats.stat_net_output_bytes);
+                                 qel->stats.stat_net_output_bytes);
     }
 
     freeClientsInAsyncFreeQueue(&worker->qel);
 
-    //to collect stats for info Command
-    //if (!(cron_loops%((5000)/(1000/worker->qel.hz)))) {
-    worker_run_with_period(5000) {
+    // to collect stats for info Command
+    // if (!(cron_loops%((5000)/(1000/worker->qel.hz)))) {
+    worker_run_with_period(5000)
+    {
         client *c;
         listNode *ln;
         listIter li;
         listRewind(worker->qel.clients, &li);
-        while((ln = listNext(&li)) != NULL) {
+        while ((ln = listNext(&li)) != NULL) {
             c = listNodeValue(ln);
             if (listLength(c->reply) > worker->stats.lol) {
                 worker->stats.lol = listLength(c->reply);
@@ -316,25 +332,28 @@ int worker_cron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     }
 
     cron_loops++;
-    return 1000/worker->qel.hz;
+    return 1000 / worker->qel.hz;
 }
 
-static int
-setup_worker(q_worker *worker) {
+static int setup_worker(q_worker *worker)
+{
     int status;
 
-    status = aeCreateFileEvent(worker->qel.el, worker->socketpairs[1], AE_READABLE,
-            worker_thread_event_process, worker);
+    status =
+        aeCreateFileEvent(worker->qel.el, worker->socketpairs[1], AE_READABLE,
+                          worker_thread_event_process, worker);
     if (status == AE_ERR) {
-        serverLog(LL_WARNING, "Unrecoverable error creating worker ipfd file event.");
+        serverLog(LL_WARNING,
+                  "Unrecoverable error creating worker ipfd file event.");
         return C_ERR;
     }
 
     aeSetBeforeSleepProc(worker->qel.el, worker_before_sleep, worker);
 
-    /* Create the serverCron() time event, that's our main way to process
+    /* Create the worker_cron() time event, that's our main way to process
      * background operations. */
-    if (aeCreateTimeEvent(worker->qel.el, 1, worker_cron, worker, NULL) == AE_ERR) {
+    if (aeCreateTimeEvent(worker->qel.el, 1, worker_cron, worker, NULL) ==
+        AE_ERR) {
         serverPanic("Can't create the serverCron time event.");
         return C_ERR;
     }
@@ -343,8 +362,8 @@ setup_worker(q_worker *worker) {
 }
 
 
-static void *
-worker_thread_run(void *args) {
+static void *worker_thread_run(void *args)
+{
     q_worker *worker = args;
 
     rcu_register_thread();
@@ -354,8 +373,8 @@ worker_thread_run(void *args) {
     return NULL;
 }
 
-int
-q_workers_init(uint32_t worker_count) {
+int q_workers_init(uint32_t worker_count)
+{
     int status;
     uint32_t idx;
     q_worker *worker;
@@ -378,8 +397,8 @@ q_workers_init(uint32_t worker_count) {
     return C_OK;
 }
 
-void
-q_worker_deinit(q_worker *worker) {
+void q_worker_deinit(q_worker *worker)
+{
     if (worker == NULL) {
         return;
     }
@@ -396,10 +415,11 @@ q_worker_deinit(q_worker *worker) {
     }
 
     // destroy the lfqueue
-    //cds_lfq_destroy_rcu(&worker->csul);
+    // cds_lfq_destroy_rcu(&worker->csul);
 }
 
-void q_workers_deinit(void) {
+void q_workers_deinit(void)
+{
     q_worker *worker;
     while (darray_n(&workers)) {
         worker = darray_pop(&workers);
@@ -407,13 +427,14 @@ void q_workers_deinit(void) {
     }
 }
 
-int
-q_workers_run(void) {
+int q_workers_run(void)
+{
     uint32_t i, thread_count;
     q_worker *worker;
 
     thread_count = (uint32_t) num_worker_threads;
-    serverLog(LL_NOTICE, "fn: q_workers_run, start %d worker thread", thread_count);
+    serverLog(LL_NOTICE, "fn: q_workers_run, start %d worker thread",
+              thread_count);
 
     for (i = 0; i < thread_count; i++) {
         worker = darray_get(&workers, i);
@@ -424,11 +445,11 @@ q_workers_run(void) {
 }
 
 
-// server main thread will create worker and master thread, 
+// server main thread will create worker and master thread,
 // main thread will enter it's own eventloop, so there is no need
 // to call q_workers_wait() as previous implementation did
-int
-q_workers_wait(void) {
+int q_workers_wait(void)
+{
     uint32_t i, thread_count;
     q_worker *worker;
 
@@ -442,8 +463,8 @@ q_workers_wait(void) {
     return C_OK;
 }
 
-void
-dispatch_conn_new(int sd) {
+void dispatch_conn_new(int sd)
+{
     struct connswapunit *su = csui_new();
     char buf[1];
     q_worker *worker;
@@ -451,7 +472,8 @@ dispatch_conn_new(int sd) {
     if (su == NULL) {
         close(sd);
         /* given that malloc failed this may also fail, but let's try */
-        serverLog(LL_WARNING, "Failed to allocate memory for connection swap object\n");
+        serverLog(LL_WARNING,
+                  "Failed to allocate memory for connection swap object\n");
         return;
     }
 
@@ -474,7 +496,7 @@ dispatch_conn_new(int sd) {
 /*
  * q_eventloop *get_dispatched_worker_eventloop(void) {
  *     q_worker *worker;
- * 
+ *
  *     int tid = (last_worker_thread + 1) % server.threads_num;
  *     worker = darray_get(&workers, (uint32_t) tid);
  *     last_worker_thread = tid;
@@ -482,8 +504,8 @@ dispatch_conn_new(int sd) {
  * }
  */
 
-struct connswapunit *
-csui_new(void) {
+struct connswapunit *csui_new(void)
+{
     struct connswapunit *item = NULL;
 
     item = zmalloc(sizeof(struct connswapunit));
@@ -491,15 +513,17 @@ csui_new(void) {
     return item;
 }
 
-struct q_command_request* q_createCommandRequest(client* c){
+struct q_command_request *q_createCommandRequest(client *c)
+{
     struct q_command_request *r = zmalloc(sizeof(*r));
-    //r->type = type;
+    // r->type = type;
     r->c = c;
     cds_wfcq_node_init(&r->q_node);
     return r;
 }
 
-void q_freeCommandRequest(struct q_command_request* r) {
+void q_freeCommandRequest(struct q_command_request *r)
+{
     r->c = NULL;
     zfree(r);
 }

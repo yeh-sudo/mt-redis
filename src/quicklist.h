@@ -111,7 +111,7 @@ typedef struct quicklistEntry {
 #define QUICKLIST_NODE_CONTAINER_NONE 1
 #define QUICKLIST_NODE_CONTAINER_ZIPLIST 2
 
-#define quicklistNodeIsCompressed(node)                                        \
+#define quicklistNodeIsCompressed(node) \
     ((node)->encoding == QUICKLIST_NODE_ENCODING_LZF)
 
 /* Prototypes */
@@ -123,37 +123,54 @@ void quicklistSetOptions(quicklist *quicklist, int fill, int depth);
 void quicklistRelease(quicklist *quicklist);
 int quicklistPushHead(quicklist *quicklist, void *value, const size_t sz);
 int quicklistPushTail(quicklist *quicklist, void *value, const size_t sz);
-void quicklistPush(quicklist *quicklist, void *value, const size_t sz,
+void quicklistPush(quicklist *quicklist,
+                   void *value,
+                   const size_t sz,
                    int where);
 void quicklistAppendZiplist(quicklist *quicklist, unsigned char *zl);
 quicklist *quicklistAppendValuesFromZiplist(quicklist *quicklist,
                                             unsigned char *zl);
-quicklist *quicklistCreateFromZiplist(int fill, int compress,
+quicklist *quicklistCreateFromZiplist(int fill,
+                                      int compress,
                                       unsigned char *zl);
-void quicklistInsertAfter(quicklist *quicklist, quicklistEntry *node,
-                          void *value, const size_t sz);
-void quicklistInsertBefore(quicklist *quicklist, quicklistEntry *node,
-                           void *value, const size_t sz);
+void quicklistInsertAfter(quicklist *quicklist,
+                          quicklistEntry *node,
+                          void *value,
+                          const size_t sz);
+void quicklistInsertBefore(quicklist *quicklist,
+                           quicklistEntry *node,
+                           void *value,
+                           const size_t sz);
 void quicklistDelEntry(quicklistIter *iter, quicklistEntry *entry);
-int quicklistReplaceAtIndex(quicklist *quicklist, long index, void *data,
+int quicklistReplaceAtIndex(quicklist *quicklist,
+                            long index,
+                            void *data,
                             int sz);
 int quicklistDelRange(quicklist *quicklist, const long start, const long stop);
 quicklistIter *quicklistGetIterator(const quicklist *quicklist, int direction);
 quicklistIter *quicklistGetIteratorAtIdx(const quicklist *quicklist,
-                                         int direction, const long long idx);
+                                         int direction,
+                                         const long long idx);
 int quicklistNext(quicklistIter *iter, quicklistEntry *node);
 void quicklistReleaseIterator(quicklistIter *iter);
 quicklist *quicklistDup(quicklist *orig);
-int quicklistIndex(const quicklist *quicklist, const long long index,
+int quicklistIndex(const quicklist *quicklist,
+                   const long long index,
                    quicklistEntry *entry);
 void quicklistRewind(quicklist *quicklist, quicklistIter *li);
 void quicklistRewindTail(quicklist *quicklist, quicklistIter *li);
 void quicklistRotate(quicklist *quicklist);
-int quicklistPopCustom(quicklist *quicklist, int where, unsigned char **data,
-                       unsigned int *sz, long long *sval,
+int quicklistPopCustom(quicklist *quicklist,
+                       int where,
+                       unsigned char **data,
+                       unsigned int *sz,
+                       long long *sval,
                        void *(*saver)(unsigned char *data, unsigned int sz));
-int quicklistPop(quicklist *quicklist, int where, unsigned char **data,
-                 unsigned int *sz, long long *slong);
+int quicklistPop(quicklist *quicklist,
+                 int where,
+                 unsigned char **data,
+                 unsigned int *sz,
+                 long long *slong);
 unsigned int quicklistCount(quicklist *ql);
 int quicklistCompare(unsigned char *p1, unsigned char *p2, int p2_len);
 size_t quicklistGetLzf(const quicklistNode *node, void **data);

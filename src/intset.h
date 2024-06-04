@@ -51,4 +51,4 @@ size_t intsetBlobLen(intset *is);
 int intsetTest(int argc, char *argv[]);
 #endif
 
-#endif // __INTSET_H
+#endif  // __INTSET_H

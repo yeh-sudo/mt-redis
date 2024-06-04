@@ -5,8 +5,8 @@
 #include "q_thread.h"
 #include "server.h"
 
-int
-q_thread_init(q_thread *thread) {
+int q_thread_init(q_thread *thread)
+{
     if (thread == NULL) {
         return C_ERR;
     }
@@ -19,8 +19,8 @@ q_thread_init(q_thread *thread) {
     return C_OK;
 }
 
-void
-q_thread_deinit(q_thread *thread) {
+void q_thread_deinit(q_thread *thread)
+{
     if (thread == NULL) {
         return;
     }
@@ -31,14 +31,16 @@ q_thread_deinit(q_thread *thread) {
     thread->data = NULL;
 }
 
-static void *q_thread_run(void *data) {
+static void *q_thread_run(void *data)
+{
     q_thread *thread = data;
     srand(ustime() ^ (int) pthread_self());
 
     return thread->fun_run(thread->data);
 }
 
-int q_thread_start(q_thread *thread) {
+int q_thread_start(q_thread *thread)
+{
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
@@ -46,8 +48,7 @@ int q_thread_start(q_thread *thread) {
         return C_ERR;
     }
 
-    pthread_create(&thread->thread_id,
-                   &attr, q_thread_run, thread);
+    pthread_create(&thread->thread_id, &attr, q_thread_run, thread);
 
     return C_OK;
 }

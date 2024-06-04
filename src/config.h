@@ -35,8 +35,8 @@
 #endif
 
 #ifdef __linux__
-#include <linux/version.h>
 #include <features.h>
+#include <linux/version.h>
 #endif
 
 /* Define redis_fstat to fstat or fstat64() */
@@ -76,7 +76,8 @@
 #define HAVE_EPOLL 1
 #endif
 
-#if (defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined (__NetBSD__)
+#if (defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)) || \
+    defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define HAVE_KQUEUE 1
 #endif
 
@@ -109,9 +110,11 @@
 #endif
 
 #ifdef HAVE_SYNC_FILE_RANGE
-#define rdb_fsync_range(fd,off,size) sync_file_range(fd,off,size,SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE)
+#define rdb_fsync_range(fd, off, size) \
+    sync_file_range(fd, off, size,     \
+                    SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE)
 #else
-#define rdb_fsync_range(fd,off,size) fsync(fd)
+#define rdb_fsync_range(fd, off, size) fsync(fd)
 #endif
 
 /* Check if we can use setproctitle().
@@ -133,30 +136,30 @@ void setproctitle(const char *fmt, ...);
 
 #ifndef BYTE_ORDER
 #if (BSD >= 199103)
-# include <machine/endian.h>
+#include <machine/endian.h>
 #else
 #if defined(linux) || defined(__linux__)
-# include <endian.h>
+#include <endian.h>
 #else
-#define	LITTLE_ENDIAN	1234	/* least-significant byte first (vax, pc) */
-#define	BIG_ENDIAN	4321	/* most-significant byte first (IBM, net) */
-#define	PDP_ENDIAN	3412	/* LSB first in word, MSW first in long (pdp)*/
+#define LITTLE_ENDIAN 1234 /* least-significant byte first (vax, pc) */
+#define BIG_ENDIAN 4321    /* most-significant byte first (IBM, net) */
+#define PDP_ENDIAN 3412    /* LSB first in word, MSW first in long (pdp)*/
 
-#if defined(__i386__) || defined(__x86_64__) || defined(__amd64__) || \
-   defined(vax) || defined(ns32000) || defined(sun386) || \
-   defined(MIPSEL) || defined(_MIPSEL) || defined(BIT_ZERO_ON_RIGHT) || \
-   defined(__alpha__) || defined(__alpha)
-#define BYTE_ORDER    LITTLE_ENDIAN
+#if defined(__i386__) || defined(__x86_64__) || defined(__amd64__) ||         \
+    defined(vax) || defined(ns32000) || defined(sun386) || defined(MIPSEL) || \
+    defined(_MIPSEL) || defined(BIT_ZERO_ON_RIGHT) || defined(__alpha__) ||   \
+    defined(__alpha)
+#define BYTE_ORDER LITTLE_ENDIAN
 #endif
 
-#if defined(sel) || defined(pyr) || defined(mc68000) || defined(sparc) || \
-    defined(is68k) || defined(tahoe) || defined(ibm032) || defined(ibm370) || \
-    defined(MIPSEB) || defined(_MIPSEB) || defined(_IBMR2) || defined(DGUX) ||\
-    defined(apollo) || defined(__convex__) || defined(_CRAY) || \
-    defined(__hppa) || defined(__hp9000) || \
-    defined(__hp9000s300) || defined(__hp9000s700) || \
-    defined (BIT_ZERO_ON_LEFT) || defined(m68k) || defined(__sparc)
-#define BYTE_ORDER	BIG_ENDIAN
+#if defined(sel) || defined(pyr) || defined(mc68000) || defined(sparc) ||      \
+    defined(is68k) || defined(tahoe) || defined(ibm032) || defined(ibm370) ||  \
+    defined(MIPSEB) || defined(_MIPSEB) || defined(_IBMR2) || defined(DGUX) || \
+    defined(apollo) || defined(__convex__) || defined(_CRAY) ||                \
+    defined(__hppa) || defined(__hp9000) || defined(__hp9000s300) ||           \
+    defined(__hp9000s700) || defined(BIT_ZERO_ON_LEFT) || defined(m68k) ||     \
+    defined(__sparc)
+#define BYTE_ORDER BIG_ENDIAN
 #endif
 #endif /* linux */
 #endif /* BSD */
@@ -186,16 +189,17 @@ void setproctitle(const char *fmt, ...);
 
 #if !defined(BYTE_ORDER) || \
     (BYTE_ORDER != BIG_ENDIAN && BYTE_ORDER != LITTLE_ENDIAN)
-	/* you must determine what the correct bit order is for
-	 * your compiler - the next line is an intentional error
-	 * which will force your compiles to bomb until you fix
-	 * the above macros.
-	 */
+/* you must determine what the correct bit order is for
+ * your compiler - the next line is an intentional error
+ * which will force your compiles to bomb until you fix
+ * the above macros.
+ */
 #error "Undefined or invalid BYTE_ORDER"
 #endif
 
 #if (__i386 || __amd64 || __powerpc__) && __GNUC__
-#define GNUC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#define GNUC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #if defined(__clang__)
 #define HAVE_ATOMIC
 #endif

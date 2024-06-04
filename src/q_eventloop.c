@@ -6,22 +6,24 @@
 #include "q_thread.h"
 #include "server.h"
 
-void resetEventloopStats(q_eventloop_stats *stats) {
+void resetEventloopStats(q_eventloop_stats *stats)
+{
     int j;
     stats->stat_numcommands = 0;
     stats->stat_net_input_bytes = 0;
     stats->stat_net_output_bytes = 0;
 
-    for (j = 0; j< STATS_METRIC_COUNT; j++) {
+    for (j = 0; j < STATS_METRIC_COUNT; j++) {
         stats->inst_metric[j].idx = 0;
         stats->inst_metric[j].last_sample_count = 0;
         stats->inst_metric[j].last_sample_time = mstime();
-        memset(stats->inst_metric[j].samples, 0, 
-                sizeof(stats->inst_metric[j].samples));
+        memset(stats->inst_metric[j].samples, 0,
+               sizeof(stats->inst_metric[j].samples));
     }
 }
 
-int q_eventloop_init(q_eventloop *qel, int filelimit) {
+int q_eventloop_init(q_eventloop *qel, int filelimit)
+{
     if (qel == NULL || filelimit <= 0) {
         return C_ERR;
     }
@@ -30,9 +32,9 @@ int q_eventloop_init(q_eventloop *qel, int filelimit) {
     qel->el = NULL;
     qel->hz = 10;
     qel->cronloops = 0;
-    //qel->unixtime = time(NULL);
-    //qel->mstime = mstime();
-    qel->next_client_id = 1;    /* Client IDs, start from 1 .*/
+    // qel->unixtime = time(NULL);
+    // qel->mstime = mstime();
+    qel->next_client_id = 1; /* Client IDs, start from 1 .*/
     qel->current_client = NULL;
     qel->clients = NULL;
     qel->clients_pending_write = NULL;
@@ -48,25 +50,29 @@ int q_eventloop_init(q_eventloop *qel, int filelimit) {
 
     qel->clients = listCreate();
     if (qel->clients == NULL) {
-        serverLog(LL_WARNING, "q_eventloop_init: create list failed(out of memory)");
+        serverLog(LL_WARNING,
+                  "q_eventloop_init: create list failed(out of memory)");
         return C_ERR;
     }
 
     qel->clients_pending_write = listCreate();
     if (qel->clients_pending_write == NULL) {
-        serverLog(LL_WARNING, "q_eventloop_init: create list failed(out of memory)");
+        serverLog(LL_WARNING,
+                  "q_eventloop_init: create list failed(out of memory)");
         return C_ERR;
     }
 
     qel->clients_to_close = listCreate();
     if (qel->clients_to_close == NULL) {
-        serverLog(LL_WARNING, "q_eventloop_init: create list failed(out of memory)");
+        serverLog(LL_WARNING,
+                  "q_eventloop_init: create list failed(out of memory)");
         return C_ERR;
     }
 
     qel->unblocked_clients = listCreate();
     if (qel->unblocked_clients == NULL) {
-        serverLog(LL_WARNING, "q_eventloop_init: create list failed(out of memory)");
+        serverLog(LL_WARNING,
+                  "q_eventloop_init: create list failed(out of memory)");
         return C_ERR;
     }
 
@@ -74,7 +80,8 @@ int q_eventloop_init(q_eventloop *qel, int filelimit) {
     return C_OK;
 }
 
-void q_eventloop_deinit(q_eventloop *qel) {
+void q_eventloop_deinit(q_eventloop *qel)
+{
     if (qel == NULL) {
         return;
     }
@@ -88,7 +95,7 @@ void q_eventloop_deinit(q_eventloop *qel) {
 
     if (qel->clients != NULL) {
         client *c;
-        while ((c = listPop(qel->clients))){
+        while ((c = listPop(qel->clients))) {
             freeClient(c);
         }
         listRelease(qel->clients);
@@ -97,7 +104,8 @@ void q_eventloop_deinit(q_eventloop *qel) {
 
     if (qel->clients_pending_write != NULL) {
         client *c;
-        while ((c = listPop(qel->clients_pending_write))) {}
+        while ((c = listPop(qel->clients_pending_write))) {
+        }
         listRelease(qel->clients_pending_write);
         qel->clients_pending_write = NULL;
     }
@@ -113,9 +121,9 @@ void q_eventloop_deinit(q_eventloop *qel) {
 
     if (qel->unblocked_clients != NULL) {
         client *c;
-        while ((c = listPop(qel->unblocked_clients))) {}
+        while ((c = listPop(qel->unblocked_clients))) {
+        }
         listRelease(qel->unblocked_clients);
         qel->unblocked_clients = NULL;
     }
-
 }

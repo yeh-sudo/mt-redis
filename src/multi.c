@@ -32,18 +32,20 @@
 /* ================================ MULTI/EXEC ============================== */
 
 /* Client state initialization for MULTI/EXEC */
-void initClientMultiState(client *c) {
+void initClientMultiState(client *c)
+{
     c->mstate.commands = NULL;
     c->mstate.count = 0;
 }
 
 /* Release all the resources associated with MULTI/EXEC state */
-void freeClientMultiState(client *c) {
+void freeClientMultiState(client *c)
+{
     int j;
 
     for (j = 0; j < c->mstate.count; j++) {
         int i;
-        multiCmd *mc = c->mstate.commands+j;
+        multiCmd *mc = c->mstate.commands + j;
 
         for (i = 0; i < mc->argc; i++)
             decrRefCount(mc->argv[i]);
@@ -53,65 +55,72 @@ void freeClientMultiState(client *c) {
 }
 
 /* Add a new command into the MULTI commands queue */
-void queueMultiCommand(client *c) {
+void queueMultiCommand(client *c)
+{
     multiCmd *mc;
     int j;
 
-    c->mstate.commands = zrealloc(c->mstate.commands,
-            sizeof(multiCmd)*(c->mstate.count+1));
-    mc = c->mstate.commands+c->mstate.count;
+    c->mstate.commands =
+        zrealloc(c->mstate.commands, sizeof(multiCmd) * (c->mstate.count + 1));
+    mc = c->mstate.commands + c->mstate.count;
     mc->cmd = c->cmd;
     mc->argc = c->argc;
-    mc->argv = zmalloc(sizeof(robj*)*c->argc);
-    memcpy(mc->argv,c->argv,sizeof(robj*)*c->argc);
+    mc->argv = zmalloc(sizeof(robj *) * c->argc);
+    memcpy(mc->argv, c->argv, sizeof(robj *) * c->argc);
     for (j = 0; j < c->argc; j++)
         incrRefCount(mc->argv[j]);
     c->mstate.count++;
 }
 
-void discardTransaction(client *c) {
+void discardTransaction(client *c)
+{
     freeClientMultiState(c);
     initClientMultiState(c);
-    c->flags &= ~(CLIENT_MULTI|CLIENT_DIRTY_CAS|CLIENT_DIRTY_EXEC);
+    c->flags &= ~(CLIENT_MULTI | CLIENT_DIRTY_CAS | CLIENT_DIRTY_EXEC);
     unwatchAllKeys(c);
 }
 
 /* Flag the transacation as DIRTY_EXEC so that EXEC will fail.
  * Should be called every time there is an error while queueing a command. */
-void flagTransaction(client *c) {
+void flagTransaction(client *c)
+{
     if (c->flags & CLIENT_MULTI)
         c->flags |= CLIENT_DIRTY_EXEC;
 }
 
-void multiCommand(client *c) {
+void multiCommand(client *c)
+{
     if (c->flags & CLIENT_MULTI) {
-        addReplyError(c,"MULTI calls can not be nested");
+        addReplyError(c, "MULTI calls can not be nested");
         return;
     }
     c->flags |= CLIENT_MULTI;
-    addReply(c,shared.ok);
+    addReply(c, shared.ok);
 }
 
-void discardCommand(client *c) {
+void discardCommand(client *c)
+{
     if (!(c->flags & CLIENT_MULTI)) {
-        addReplyError(c,"DISCARD without MULTI");
+        addReplyError(c, "DISCARD without MULTI");
         return;
     }
     discardTransaction(c);
-    addReply(c,shared.ok);
+    addReply(c, shared.ok);
 }
 
 /* Send a MULTI command to all the slaves and AOF file. Check the execCommand
  * implementation for more information. */
-void execCommandPropagateMulti(client *c) {
-    robj *multistring = createStringObject("MULTI",5);
+void execCommandPropagateMulti(client *c)
+{
+    robj *multistring = createStringObject("MULTI", 5);
 
-    propagate(server.multiCommand,c->db->id,&multistring,1,
-              PROPAGATE_AOF|PROPAGATE_REPL);
+    propagate(server.multiCommand, c->db->id, &multistring, 1,
+              PROPAGATE_AOF | PROPAGATE_REPL);
     decrRefCount(multistring);
 }
 
-void execCommand(client *c) {
+void execCommand(client *c)
+{
     int j;
     robj **orig_argv;
     int orig_argc;
@@ -119,7 +128,7 @@ void execCommand(client *c) {
     int must_propagate = 0; /* Need to propagate MULTI/EXEC to AOF / slaves? */
 
     if (!(c->flags & CLIENT_MULTI)) {
-        addReplyError(c,"EXEC without MULTI");
+        addReplyError(c, "EXEC without MULTI");
         return;
     }
 
@@ -129,9 +138,9 @@ void execCommand(client *c) {
      * A failed EXEC in the first case returns a multi bulk nil object
      * (technically it is not an error but a special behavior), while
      * in the second an EXECABORT error is returned. */
-    if (c->flags & (CLIENT_DIRTY_CAS|CLIENT_DIRTY_EXEC)) {
-        addReply(c, c->flags & CLIENT_DIRTY_EXEC ? shared.execaborterr :
-                                                  shared.nullmultibulk);
+    if (c->flags & (CLIENT_DIRTY_CAS | CLIENT_DIRTY_EXEC)) {
+        addReply(c, c->flags & CLIENT_DIRTY_EXEC ? shared.execaborterr
+                                                 : shared.nullmultibulk);
         discardTransaction(c);
         goto handle_monitor;
     }
@@ -141,7 +150,7 @@ void execCommand(client *c) {
     orig_argv = c->argv;
     orig_argc = c->argc;
     orig_cmd = c->cmd;
-    addReplyMultiBulkLen(c,c->mstate.count);
+    addReplyMultiBulkLen(c, c->mstate.count);
     for (j = 0; j < c->mstate.count; j++) {
         c->argc = c->mstate.commands[j].argc;
         c->argv = c->mstate.commands[j].argv;
@@ -156,7 +165,7 @@ void execCommand(client *c) {
             must_propagate = 1;
         }
 
-        call(c,CMD_CALL_FULL);
+        call(c, CMD_CALL_FULL);
 
         /* Commands may alter argc/argv, restore mstate. */
         c->mstate.commands[j].argc = c->argc;
@@ -169,7 +178,8 @@ void execCommand(client *c) {
     discardTransaction(c);
     /* Make sure the EXEC command will be propagated as well if MULTI
      * was already propagated. */
-    if (must_propagate) server.dirty++;
+    if (must_propagate)
+        server.dirty++;
 
 handle_monitor:
     /* Send EXEC to clients waiting data from MONITOR. We do it here
@@ -178,7 +188,8 @@ handle_monitor:
      * Instead EXEC is flagged as CMD_SKIP_MONITOR in the command
      * table, and we do it here with correct ordering. */
     if (listLength(server.monitors) && !server.loading)
-        replicationFeedMonitors(c,server.monitors,c->db->id,c->argv,c->argc);
+        replicationFeedMonitors(c, server.monitors, c->db->id, c->argv,
+                                c->argc);
 }
 
 /* ===================== WATCH (CAS alike for MULTI/EXEC) ===================
@@ -199,44 +210,47 @@ typedef struct watchedKey {
 } watchedKey;
 
 /* Watch for the specified key */
-void watchForKey(client *c, robj *key) {
+void watchForKey(client *c, robj *key)
+{
     list *clients = NULL;
     listIter li;
     listNode *ln;
     watchedKey *wk;
 
     /* Check if we are already watching for this key */
-    listRewind(c->watched_keys,&li);
-    while((ln = listNext(&li))) {
+    listRewind(c->watched_keys, &li);
+    while ((ln = listNext(&li))) {
         wk = listNodeValue(ln);
-        if (wk->db == c->db && equalStringObjects(key,wk->key))
+        if (wk->db == c->db && equalStringObjects(key, wk->key))
             return; /* Key already watched */
     }
     /* This key is not already watched in this DB. Let's add it */
-    clients = dictFetchValue(c->db->watched_keys,key);
+    clients = dictFetchValue(c->db->watched_keys, key);
     if (!clients) {
         clients = listCreate();
-        dictAdd(c->db->watched_keys,key,clients);
+        dictAdd(c->db->watched_keys, key, clients);
         incrRefCount(key);
     }
-    listAddNodeTail(clients,c);
+    listAddNodeTail(clients, c);
     /* Add the new key to the list of keys watched by this client */
     wk = zmalloc(sizeof(*wk));
     wk->key = key;
     wk->db = c->db;
     incrRefCount(key);
-    listAddNodeTail(c->watched_keys,wk);
+    listAddNodeTail(c->watched_keys, wk);
 }
 
 /* Unwatch all the keys watched by this client. To clean the EXEC dirty
  * flag is up to the caller. */
-void unwatchAllKeys(client *c) {
+void unwatchAllKeys(client *c)
+{
     listIter li;
     listNode *ln;
 
-    if (listLength(c->watched_keys) == 0) return;
-    listRewind(c->watched_keys,&li);
-    while((ln = listNext(&li))) {
+    if (listLength(c->watched_keys) == 0)
+        return;
+    listRewind(c->watched_keys, &li);
+    while ((ln = listNext(&li))) {
         list *clients;
         watchedKey *wk;
 
@@ -244,13 +258,13 @@ void unwatchAllKeys(client *c) {
          * from the list */
         wk = listNodeValue(ln);
         clients = dictFetchValue(wk->db->watched_keys, wk->key);
-        serverAssertWithInfo(c,NULL,clients != NULL);
-        listDelNode(clients,listSearchKey(clients,c));
+        serverAssertWithInfo(c, NULL, clients != NULL);
+        listDelNode(clients, listSearchKey(clients, c));
         /* Kill the entry at all if this was the only client */
         if (listLength(clients) == 0)
             dictDelete(wk->db->watched_keys, wk->key);
         /* Remove this watched key from the client->watched list */
-        listDelNode(c->watched_keys,ln);
+        listDelNode(c->watched_keys, ln);
         decrRefCount(wk->key);
         zfree(wk);
     }
@@ -258,19 +272,22 @@ void unwatchAllKeys(client *c) {
 
 /* "Touch" a key, so that if this key is being WATCHed by some client the
  * next EXEC will fail. */
-void touchWatchedKey(redisDb *db, robj *key) {
+void touchWatchedKey(redisDb *db, robj *key)
+{
     list *clients;
     listIter li;
     listNode *ln;
 
-    if (dictSize(db->watched_keys) == 0) return;
+    if (dictSize(db->watched_keys) == 0)
+        return;
     clients = dictFetchValue(db->watched_keys, key);
-    if (!clients) return;
+    if (!clients)
+        return;
 
     /* Mark all the clients watching this key as CLIENT_DIRTY_CAS */
     /* Check if we are already watching for this key */
-    listRewind(clients,&li);
-    while((ln = listNext(&li))) {
+    listRewind(clients, &li);
+    while ((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
 
         c->flags |= CLIENT_DIRTY_CAS;
@@ -281,16 +298,17 @@ void touchWatchedKey(redisDb *db, robj *key) {
  * flush but will be deleted as effect of the flushing operation should
  * be touched. "dbid" is the DB that's getting the flush. -1 if it is
  * a FLUSHALL operation (all the DBs flushed). */
-void touchWatchedKeysOnFlush(int dbid) {
+void touchWatchedKeysOnFlush(int dbid)
+{
     listIter li1, li2;
     listNode *ln;
 
     /* For every client, check all the waited keys */
-    listRewind(server.clients,&li1);
-    while((ln = listNext(&li1))) {
+    listRewind(server.clients, &li1);
+    while ((ln = listNext(&li1))) {
         client *c = listNodeValue(ln);
-        listRewind(c->watched_keys,&li2);
-        while((ln = listNext(&li2))) {
+        listRewind(c->watched_keys, &li2);
+        while ((ln = listNext(&li2))) {
             watchedKey *wk = listNodeValue(ln);
 
             /* For every watched key matching the specified DB, if the
@@ -306,20 +324,22 @@ void touchWatchedKeysOnFlush(int dbid) {
     }
 }
 
-void watchCommand(client *c) {
+void watchCommand(client *c)
+{
     int j;
 
     if (c->flags & CLIENT_MULTI) {
-        addReplyError(c,"WATCH inside MULTI is not allowed");
+        addReplyError(c, "WATCH inside MULTI is not allowed");
         return;
     }
     for (j = 1; j < c->argc; j++)
-        watchForKey(c,c->argv[j]);
-    addReply(c,shared.ok);
+        watchForKey(c, c->argv[j]);
+    addReply(c, shared.ok);
 }
 
-void unwatchCommand(client *c) {
+void unwatchCommand(client *c)
+{
     unwatchAllKeys(c);
     c->flags &= (~CLIENT_DIRTY_CAS);
-    addReply(c,shared.ok);
+    addReply(c, shared.ok);
 }
