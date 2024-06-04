@@ -9,6 +9,65 @@ A multi-threaded Redis fork with [Read-Copy-Update](https://liburcu.org/) (RCU) 
 * RCU can support lock-free sharing between 1 writer thread and multiple reader threads to boost read operation performance.
 * Can achieve over 1 million Ops/sec powered by an ordinary server.
 
+## Prerequisites
+
+To build mt-redis from source, install the build-essential meta-package from the Ubuntu repositories.
+```shell
+$ sudo apt install build-essential autoconf
+```
+
+## Building mt-redis
+
+Compile using default setting:
+```shell
+$ make
+```
+
+Selecting a non-default memory allocator when building mt-redis is done by setting the MALLOC environment variable.
+
+To force compiling against libc malloc, use:
+```shell
+$ make MALLOC=libc
+```
+
+To force compiling against jemalloc, use:
+```shell
+$ make MALLOC=jemalloc
+```
+
+## Problems with dependencies or cached build options
+
+When you update the source code with `git pull` or when code inside the dependencies tree is modified in any other way, make sure to use the following command in order to really clean everything and rebuild from scratch:
+```shell
+$ make distclean
+```
+This will clean: jemalloc, lua, hiredis, linenoise and other dependencies.
+
+Also if you force certain build options like 32bit target, no C compiler optimizations (for debugging purposes), and other similar build time options, those options are cached indefinitely until you issue a `make distclean` command.
+
+## Running mt-redis
+
+To run mt-redis with the default configuration, just type:
+```shell
+cd src && ./redis-server
+```
+
+If you want to provide your redis.conf, you have to run it using an additional parameter (the path of the configuration file):
+```shell
+cd src && ./redis-server /path/to/mt-redis.conf
+```
+
+## Playing with mt-redis
+
+You can use redis-cli to play with mt-redis. Start a mt-redis-server instance, then in another terminal try the following:
+```shell
+$ cd src
+$ ./redis-cli
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379> 
+```
+
 ## Performance
 
 The following benchmarks show the performance of mt-redis and Redis using the [memtier\_benchmark](https://github.com/RedisLabs/memtier_benchmark) tool.
@@ -60,9 +119,3 @@ Waits           0.00          ---          ---             ---             ---  
 Totals     253801.92         0.00    230705.95         0.80802         0.75100         1.39900         2.81500     10765.79
 ```
 
-## Prerequisites
-
-To build mt-redis from source, install the build-essential meta-package from the Ubuntu repositories.
-```shell
-$ sudo apt install build-essential autoconf
-```

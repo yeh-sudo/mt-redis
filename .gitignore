@@ -35,6 +35,13 @@
 *.i*86
 *.x86_64
 *.hex
+*-benchmark
+*-check-aof
+*-check-rdb
+*-check-dump
+*-cli
+*-sentinel
+*-server
 
 # Debug files
 *.dSYM/
@@ -52,3 +59,14 @@ Mkfile.old
 dkms.conf
 
 src/release.h
+
+deps/lua/src/lua
+deps/lua/src/luac
+deps/lua/src/liblua.a
+.make-*
+dump.rdb
+deps/install
+deps/jemalloc/configure~
+
+.vscode/*
+.idea/*
