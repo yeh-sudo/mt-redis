@@ -49,8 +49,8 @@
  * pointers being only at "level 1". This allows to traverse the list
  * from tail to head, useful for ZREVRANGE. */
 
-#include <math.h>
 #include "server.h"
+#include <math.h>
 
 static int zslLexValueGteMin(robj *value, zlexrangespec *spec);
 static int zslLexValueLteMax(robj *value, zlexrangespec *spec);

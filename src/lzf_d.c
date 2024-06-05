@@ -87,66 +87,97 @@ unsigned int lzf_decompress(const void *const in_data,
             switch (ctrl) {
             case 32:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 31:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 30:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 29:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 28:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 27:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 26:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 25:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 24:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 23:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 22:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 21:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 20:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 19:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 18:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 17:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 16:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 15:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 14:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 13:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 12:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 11:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 10:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 9:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 8:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 7:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 6:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 5:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 4:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 3:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 2:
                 *op++ = *ip++;
+                __attribute__((fallthrough));
             case 1:
                 *op++ = *ip++;
             }
@@ -208,22 +239,31 @@ unsigned int lzf_decompress(const void *const in_data,
 
             case 9:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 8:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 7:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 6:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 5:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 4:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 3:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 2:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 1:
                 *op++ = *ref++;
+                __attribute__((fallthrough));
             case 0:
                 *op++ = *ref++; /* two octets more */
                 *op++ = *ref++;

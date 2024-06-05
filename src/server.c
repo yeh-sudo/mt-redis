@@ -2513,9 +2513,17 @@ void populateCommandTable(void)
         }
 
         retval1 = dictAdd(server.commands, sdsnew(c->name), c);
+        if (retval1 != DICT_OK) {
+            serverLog(LL_WARNING, "First dictAdd failed.");
+            exit(1);
+        }
         /* Populate an additional dictionary that will be unaffected
          * by rename-command statements in redis.conf. */
         retval2 = dictAdd(server.orig_commands, sdsnew(c->name), c);
+        if (retval2 != DICT_OK) {
+            serverLog(LL_WARNING, "Second dictAdd failed.");
+            exit(1);
+        }
         // serverAssert(retval1 == DICT_OK && retval2 == DICT_OK);
     }
 }

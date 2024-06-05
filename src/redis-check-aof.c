@@ -28,13 +28,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "server.h"
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include "config.h"
 #include "fmacros.h"
+#include "config.h"
 
 #define ERROR(...)                                               \
     {                                                            \
@@ -43,7 +45,7 @@
         sprintf(error, "0x%16llx: %s", (long long) epos, __buf); \
     }
 
-static char error[1024];
+static char error[2048];
 static off_t epos;
 
 int consumeNewline(char *buf)

@@ -28,9 +28,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "server.h"
 #include "async.h"
 #include "hiredis.h"
-#include "server.h"
 
 #include <arpa/inet.h>
 #include <ctype.h>

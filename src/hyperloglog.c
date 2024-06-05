@@ -430,16 +430,22 @@ uint64_t MurmurHash64A(const void *key, int len, unsigned int seed)
     switch (len & 7) {
     case 7:
         h ^= (uint64_t) data[6] << 48;
+        __attribute__((fallthrough));
     case 6:
         h ^= (uint64_t) data[5] << 40;
+        __attribute__((fallthrough));
     case 5:
         h ^= (uint64_t) data[4] << 32;
+        __attribute__((fallthrough));
     case 4:
         h ^= (uint64_t) data[3] << 24;
+        __attribute__((fallthrough));
     case 3:
         h ^= (uint64_t) data[2] << 16;
+        __attribute__((fallthrough));
     case 2:
         h ^= (uint64_t) data[1] << 8;
+        __attribute__((fallthrough));
     case 1:
         h ^= (uint64_t) data[0];
         h *= m;

@@ -1,5 +1,5 @@
-#include <urcu.h>
 #include "server.h"
+#include <urcu.h>
 
 int q_dictSdsKeyCaseMatch(struct cds_lfht_node *ht_node, const void *key)
 {

@@ -45,6 +45,7 @@
  */
 
 
+#include "server.h"
 #include "rio.h"
 #include <stdio.h>
 #include <string.h>
@@ -52,7 +53,6 @@
 #include "config.h"
 #include "crc64.h"
 #include "fmacros.h"
-#include "server.h"
 #include "util.h"
 
 /* ------------------------- Buffer I/O implementation -----------------------
