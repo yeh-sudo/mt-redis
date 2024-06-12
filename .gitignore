@@ -70,3 +70,5 @@ deps/jemalloc/configure~
 
 .vscode/*
 .idea/*
+results/
+scripts

@@ -100,6 +100,7 @@ urcu: .make-prerequisites
 	git submodule update --init $@
 	cd $@ && ./bootstrap
 	cd $@ && CFLAGS="-m64 $(OPTIMIZATION) $(DEBUG_FLAGS)" ./configure --prefix=$(DEPS_INSTALL_DIR)
-	cd $@/src && make
-	cd $@/src && make install
+	cd $@ && make
+	cd $@ && make install
+
 .PHONY: urcu

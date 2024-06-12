@@ -58,7 +58,6 @@
 #include <sys/utsname.h>
 #include <sys/wait.h>
 #include <time.h>
-#include <urcu.h>
 
 /* Our shared "common" objects */
 
@@ -2459,7 +2458,7 @@ void populateCommandTable(void)
     for (j = 0; j < numcommands; j++) {
         struct redisCommand *c = redisCommandTable + j;
         char *f = c->sflags;
-        int retval1, retval2;
+        int retval1 __attribute__((unused)), retval2 __attribute__((unused));
 
         while (*f != '\0') {
             switch (*f) {
@@ -2513,17 +2512,9 @@ void populateCommandTable(void)
         }
 
         retval1 = dictAdd(server.commands, sdsnew(c->name), c);
-        if (retval1 != DICT_OK) {
-            serverLog(LL_WARNING, "First dictAdd failed.");
-            exit(1);
-        }
         /* Populate an additional dictionary that will be unaffected
          * by rename-command statements in redis.conf. */
         retval2 = dictAdd(server.orig_commands, sdsnew(c->name), c);
-        if (retval2 != DICT_OK) {
-            serverLog(LL_WARNING, "Second dictAdd failed.");
-            exit(1);
-        }
         // serverAssert(retval1 == DICT_OK && retval2 == DICT_OK);
     }
 }
@@ -4925,6 +4916,8 @@ int main(int argc, char **argv)
                   "what you really want?",
                   server.maxmemory);
     }
+
+
 
     // start master thread and worker threads here!
     q_workers_run();
