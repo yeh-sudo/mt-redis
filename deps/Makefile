@@ -41,6 +41,7 @@ distclean:
 	-(cd geohash-int && $(MAKE) clean) > /dev/null || true
 	-(cd jemalloc && [ -f Makefile ] && $(MAKE) distclean) > /dev/null || true
 	-(cd urcu/src && $(MAKE) clean) > /dev/null || true
+	-(cd neco && $(MAKE) clean) > /dev/null || true
 	-(rm -rf $(DEPS_INSTALL_DIR))
 	-(rm -f .make-*)
 
@@ -104,3 +105,9 @@ urcu: .make-prerequisites
 	cd $@ && make install
 
 .PHONY: urcu
+
+neco: .make-prerequisites
+	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
+	cd $@ && make
+
+.PHONY: neco

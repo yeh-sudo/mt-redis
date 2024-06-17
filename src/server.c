@@ -1257,7 +1257,7 @@ void unlinkClientFromEventloop(client *c)
 int dispatch_to_worker(client *c, int workerId)
 {
     q_worker *worker;
-    char buf[1];
+    char buf;
 
     worker = darray_get(&workers, (uint32_t) workerId);
     struct connswapunit *su = csui_new();
@@ -1292,8 +1292,8 @@ int dispatch_to_worker(client *c, int workerId)
     rcu_assign_pointer(su->data, c);
     csul_server_push(worker, su);
 
-    buf[0] = 'b';
-    if (write(worker->socketpairs[0], buf, 1) != 1) {
+    buf = 'b';
+    if (write(worker->socketpairs[0], &buf, 1) != 1) {
         serverPanic(
             "dispatch_to_worker: write back to worker socketpairs[1] "
             "failed.\r\n");
@@ -1348,7 +1348,7 @@ void server_event_process(struct aeEventLoop *eventLoop,
                           void *clientData,
                           int mask)
 {
-    char buf[1];
+    char buf;
     client *c;
     int from;
     q_command_request *r;
@@ -1370,7 +1370,7 @@ void server_event_process(struct aeEventLoop *eventLoop,
     // Num of requests in command_requests list is NOT 1:1 with num of bytes in
     // socketpair buf, the code has to deal with this mismatch.
 
-    while (read(fd, buf, 1) == 1 || qnode != NULL) {
+    while (read(fd, &buf, 1) == 1 || qnode != NULL) {
         if (qnode == NULL)
             break;
         r = caa_container_of(qnode, struct q_command_request, q_node);
@@ -2318,6 +2318,7 @@ void initServer(void)
                   "Failed to set server.socketpair[1] to non-blocking.");
         exit(1);
     }
+
     /* Open the TCP listening socket for the user commands. */
     if (server.port != 0 &&
         listenToPort(server.port, server.ipfd, &server.ipfd_count) == C_ERR)
@@ -2986,7 +2987,7 @@ int server_processCommand(client *c)
 /* worker's version of processCommand. */
 int worker_processCommand(client *c)
 {
-    char buf[1];
+    char buf;
     struct q_command_request *r = NULL;
 
     /* The QUIT command is handled separately. Normal command procs will
@@ -3055,8 +3056,8 @@ int worker_processCommand(client *c)
                      &server.command_requests_tail, &r->q_node);
     c->flags |= CLIENT_JUMP;
 
-    buf[0] = 'r'; /* r stands for request from worker thread */
-    if (write(server.socketpairs[1], buf, 1) != 1) {
+    buf = 'r'; /* r stands for request from worker thread */
+    if (write(server.socketpairs[1], &buf, 1) != 1) {
         // ToDo: need to proper set the socketpairs[1]'s buf size, for now,
         // wirte to socketpairs[1] could fail when redis-benchmark instances
         // increases. or number of connections increased. serverPanic("write to

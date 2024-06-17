@@ -6,6 +6,7 @@
 #include "q_eventloop.h"
 #include "q_worker.h"
 #include "server.h"
+#include <neco.h>
 
 #define worker_run_with_period(_ms_) \
     if ((_ms_ <= 1000 / qel->hz) || !(cron_loops % ((_ms_) / (1000 / qel->hz))))
@@ -136,7 +137,7 @@ static void worker_thread_event_process(aeEventLoop *el,
     int sd;
     int res = C_OK;
     q_worker *worker = privdata;
-    char buf[1];
+    char buf;
     struct connswapunit *csu;
     client *c;
     q_eventloop *qel = NULL;
@@ -146,13 +147,13 @@ static void worker_thread_event_process(aeEventLoop *el,
     serverAssert(el == worker->qel.el);
     serverAssert(fd == worker->socketpairs[1]);
 
-    if (read(fd, buf, 1) != 1) {
+    if (read(fd, &buf, 1) != 1) {
         serverLog(LL_WARNING, "Can't read for worker(id:%d) socketpairs[1](%d)",
                   worker->qel.thread.id, fd);
-        buf[0] = 'c';
+        buf = 'c';
     }
 
-    switch (buf[0]) {
+    switch (buf) {
     case 'c':
         csu = csul_pop(worker);
         if (csu == NULL) {
@@ -263,7 +264,7 @@ static void worker_thread_event_process(aeEventLoop *el,
     default:
         serverLog(LL_WARNING,
                   "read error char '%c' for worker(id:%d) socketpairs[1](%d)",
-                  buf[0], worker->qel.thread.id, worker->socketpairs[1]);
+                  buf, worker->qel.thread.id, worker->socketpairs[1]);
         break;
     }
 }
@@ -466,7 +467,7 @@ int q_workers_wait(void)
 void dispatch_conn_new(int sd)
 {
     struct connswapunit *su = csui_new();
-    char buf[1];
+    char buf;
     q_worker *worker;
 
     if (su == NULL) {
@@ -485,9 +486,9 @@ void dispatch_conn_new(int sd)
     su->data = NULL;
     csul_push(worker, su);
 
-    buf[0] = 'c';
+    buf = 'c';
     // to be handled by worker's worker_thread_event_process loop
-    if (write(worker->socketpairs[0], buf, 1) != 1) {
+    if (write(worker->socketpairs[0], &buf, 1) != 1) {
         serverLog(LL_WARNING, "Notice the worker failed.");
     }
 }

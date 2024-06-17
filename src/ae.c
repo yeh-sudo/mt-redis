@@ -39,6 +39,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <neco.h>
 
 #include "ae.h"
 #include "config.h"
@@ -365,6 +366,21 @@ static int processTimeEvents(aeEventLoop *eventLoop)
     return processed;
 }
 
+void rwfileProc(int argc __attribute__((unused)), void *argv[])
+{
+    int op = *(int *)argv[0];
+    aeFileEvent *fe = argv[1];
+    aeEventLoop *eventLoop = argv[2];
+    int fd = *(int *)argv[3];
+    int mask = *(int *)argv[4];
+    if (op == AE_READABLE)
+        fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+    else if (op == AE_WRITABLE)
+        fe->wfileProc(eventLoop, fd, fe->clientData, mask);
+    else
+        return;
+}
+
 /* Process every pending time event, then every pending file event
  * (that may be registered by time event callbacks just processed).
  * Without special flags the function sleeps until some file event
@@ -455,15 +471,18 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
              *
              * Fire the readable event if the call sequence is not
              * inverted. */
+            aeEventLoop *ev = eventLoop;
             if (!invert && fe->mask & mask & AE_READABLE) {
-                fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+                int op = AE_READABLE;
+                neco_start(rwfileProc, 5, &op, fe, ev, &fd, &mask);
                 fired++;
             }
 
             /* Fire the writable event. */
             if (fe->mask & mask & AE_WRITABLE) {
                 if (!fired || fe->wfileProc != fe->rfileProc) {
-                    fe->wfileProc(eventLoop, fd, fe->clientData, mask);
+                    int op = AE_WRITABLE;
+                    neco_start(rwfileProc, 5, &op, fe, ev, &fd, &mask);
                     fired++;
                 }
             }
@@ -472,7 +491,8 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
              * after the writable one. */
             if (invert && fe->mask & mask & AE_READABLE) {
                 if (!fired || fe->wfileProc != fe->rfileProc) {
-                    fe->rfileProc(eventLoop, fd, fe->clientData, mask);
+                    int op = AE_READABLE;
+                    neco_start(rwfileProc, 5, &op, fe, ev, &fd, &mask);
                     fired++;
                 }
             }
@@ -516,14 +536,22 @@ int aeWait(int fd, int mask, long long milliseconds)
     }
 }
 
-void aeMain(aeEventLoop *eventLoop)
+void main_coroutine(int argc __attribute__((unused)), void *argv[])
 {
+    aeEventLoop *eventLoop = argv[0];
     eventLoop->stop = 0;
     while (!eventLoop->stop) {
         if (eventLoop->beforesleep != NULL)
             eventLoop->beforesleep(eventLoop, eventLoop->bsdata);
         aeProcessEvents(eventLoop, AE_ALL_EVENTS);
     }
+}
+
+void aeMain(aeEventLoop *eventLoop)
+{
+    aeEventLoop *ev = eventLoop;
+
+    neco_start(main_coroutine, 1, ev);
 }
 
 char *aeGetApiName(void)
