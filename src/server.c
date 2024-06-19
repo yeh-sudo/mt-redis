@@ -1824,7 +1824,7 @@ void initServerConfig(void)
     getRandomHexChars(server.runid, CONFIG_RUN_ID_SIZE);
     server.configfile = NULL;
     server.executable = NULL;
-    server.threads_num = 8;
+    server.threads_num = 4;
     server.hz = CONFIG_DEFAULT_HZ;
     server.runid[CONFIG_RUN_ID_SIZE] = '\0';
     server.arch_bits = (sizeof(long) == 8) ? 64 : 32;
