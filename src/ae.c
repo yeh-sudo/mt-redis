@@ -368,11 +368,11 @@ static int processTimeEvents(aeEventLoop *eventLoop)
 
 void rwfileProc(int argc __attribute__((unused)), void *argv[])
 {
-    int op = *(int *)argv[0];
+    int op = *(int *) argv[0];
     aeFileEvent *fe = argv[1];
     aeEventLoop *eventLoop = argv[2];
-    int fd = *(int *)argv[3];
-    int mask = *(int *)argv[4];
+    int fd = *(int *) argv[3];
+    int mask = *(int *) argv[4];
     if (op == AE_READABLE)
         fe->rfileProc(eventLoop, fd, fe->clientData, mask);
     else if (op == AE_WRITABLE)

@@ -70,8 +70,8 @@ PONG
 
 ## Performance
 
-The following benchmarks show the performance of mt-redis and Redis using the [memtier\_benchmark](https://github.com/RedisLabs/memtier_benchmark) tool.
-These benchmarks were produced on Ubuntu Linux 20.04-LTS with an Intel Xeon CPU E5-2650 v4 processor.
+The following benchmarks show the performance of mt-redis and Valkey using the [memtier\_benchmark](https://github.com/RedisLabs/memtier_benchmark) tool.
+These benchmarks were produced on Ubuntu Linux 22.04-LTS with an AMD Ryzen 7 4800HS processor.
 
 ### Valkey 7.2.5
 
@@ -88,12 +88,12 @@ memtier_benchmark --hide-histogram -p 6379
 Reference results:
 ```
 ============================================================================================================================
-Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec
+Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
 ----------------------------------------------------------------------------------------------------------------------------
-Sets         7773.05          ---          ---         2.34606         2.15900         4.95900         7.29500       598.66
-Gets        77645.07         0.00     77645.07         2.34192         2.15900         4.86300         7.39100      3024.61
-Waits           0.00          ---          ---             ---             ---             ---             ---          ---
-Totals      85418.12         0.00     77645.07         2.34230         2.15900         4.86300         7.39100      3623.27
+Sets         7154.42          ---          ---         2.59152         2.35100         4.79900        17.40700       551.02 
+Gets        71465.60         0.00     71465.60         2.54465         2.35100         4.70300        15.23100      2783.89 
+Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
+Totals      78620.03         0.00     71465.60         2.54891         2.35100         4.70300        15.48700      3334.91
 ```
 
 ### mt-redis
@@ -111,12 +111,12 @@ memtier_benchmark --hide-histogram -p 6379
 Reference results:
 ```
 ============================================================================================================================
-Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec
+Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
 ----------------------------------------------------------------------------------------------------------------------------
-Sets        23095.97          ---          ---         0.85914         0.76700         1.59100         3.51900      1778.79
-Gets       230705.95         0.00    230705.95         0.80290         0.75100         1.36700         2.70300      8986.99
-Waits           0.00          ---          ---             ---             ---             ---             ---          ---
-Totals     253801.92         0.00    230705.95         0.80802         0.75100         1.39900         2.81500     10765.79
+Sets        38465.04          ---          ---         4.11819         2.28700        23.80700        30.71900      2962.48 
+Gets       384227.73         0.00    384227.73         0.52990         0.27900        16.31900        24.31900     14967.33 
+Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
+Totals     422692.77         0.00    384227.73         0.85643         0.28700        18.04700        26.36700     17929.81
 ```
 
 ## Programming style

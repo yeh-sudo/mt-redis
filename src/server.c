@@ -27,6 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "fmacros.h"
 #include "server.h"
 #include "cluster.h"
 #include "slowlog.h"
@@ -58,6 +59,7 @@
 #include <sys/utsname.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <pthread.h>
 
 /* Our shared "common" objects */
 
@@ -1824,7 +1826,7 @@ void initServerConfig(void)
     getRandomHexChars(server.runid, CONFIG_RUN_ID_SIZE);
     server.configfile = NULL;
     server.executable = NULL;
-    server.threads_num = 4;
+    server.threads_num = CONFIG_DEFAULT_THREADS_NUM;
     server.hz = CONFIG_DEFAULT_HZ;
     server.runid[CONFIG_RUN_ID_SIZE] = '\0';
     server.arch_bits = (sizeof(long) == 8) ? 64 : 32;
@@ -4923,6 +4925,13 @@ int main(int argc, char **argv)
     // start master thread and worker threads here!
     q_workers_run();
     q_master_run();
+
+    // Set server thread's affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(0, &cpuset);
+    pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+
     aeSetBeforeSleepProc(server.el, beforeSleep, NULL);
     aeMain(server.el);
     aeDeleteEventLoop(server.el);

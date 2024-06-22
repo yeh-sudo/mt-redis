@@ -178,6 +178,6 @@ static void *master_thread_run(void *args)
 
 int q_master_run(void)
 {
-    q_thread_start(&master.qel.thread);
+    q_thread_start(&master.qel.thread, 0);
     return C_OK;
 }

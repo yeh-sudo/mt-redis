@@ -1,8 +1,10 @@
 //
 // Created by chunlei zhang on 2018/11/28.
 //
+#include "fmacros.h"
 #include <urcu.h>
 
+#include <sched.h>
 #include "q_eventloop.h"
 #include "q_worker.h"
 #include "server.h"
@@ -428,10 +430,18 @@ void q_workers_deinit(void)
     }
 }
 
+int cpu_count()
+{
+    cpu_set_t cpuset;
+    sched_getaffinity(0, sizeof(cpuset), &cpuset);
+    return CPU_COUNT(&cpuset);
+}
+
 int q_workers_run(void)
 {
     uint32_t i, thread_count;
     q_worker *worker;
+    int cpu_num = cpu_count();
 
     thread_count = (uint32_t) num_worker_threads;
     serverLog(LL_NOTICE, "fn: q_workers_run, start %d worker thread",
@@ -439,7 +449,7 @@ int q_workers_run(void)
 
     for (i = 0; i < thread_count; i++) {
         worker = darray_get(&workers, i);
-        q_thread_start(&worker->qel.thread);
+        q_thread_start(&worker->qel.thread, ((i + 2) / 2) % cpu_num);
     }
 
     return C_OK;

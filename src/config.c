@@ -190,7 +190,13 @@ void loadServerConfigFromString(char *config)
         sdstolower(argv[0]);
 
         /* Execute config directives */
-        if (!strcasecmp(argv[0], "timeout") && argc == 2) {
+        if (!strcasecmp(argv[0], "threads_num") && argc == 2) {
+            server.threads_num = atoi(argv[1]);
+            if (server.threads_num < 0) {
+                err = "Invalid threads value";
+                goto loaderr;
+            }
+        } else if (!strcasecmp(argv[0], "timeout") && argc == 2) {
             server.maxidletime = atoi(argv[1]);
             if (server.maxidletime < 0) {
                 err = "Invalid timeout value";
